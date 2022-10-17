@@ -22,8 +22,10 @@ namespace FinalBulkyBookWeb.Areas.Admin.Controllers
         public IActionResult Index()
         {
             //var objCategoriesList = _db.Categories.ToList();
-            IEnumerable<Product> objProductsList = _unitOfWork.Product.GetAll();
-            return View(objProductsList);
+            //IEnumerable<Product> objProductsList = _unitOfWork.Product.GetAll();
+            //return View(objProductsList);
+
+            return View();
         }
 
         //Get
@@ -75,6 +77,7 @@ namespace FinalBulkyBookWeb.Areas.Admin.Controllers
             else
             {
                 //Update
+                productVM.Product = _unitOfWork.Product.GetFirstOrDefault(u => u.Id == id);
                 return View(productVM);
             }
 
@@ -95,13 +98,33 @@ namespace FinalBulkyBookWeb.Areas.Admin.Controllers
                     var uploads = Path.Combine(wwwRootPath, @"public\images\products");
                     var extension = Path.GetExtension(file.FileName);
 
+                    if(obj.Product.ImageUrl != null)
+                    {
+                        var oldImagePath = Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('\\'));
+
+                        if(System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
                     using(var fileStreams = new FileStream(Path.Combine(uploads, fileName + extension ), FileMode.Create))
                     {
                         file.CopyTo(fileStreams);
                     }
-                    obj.Product.ImageUrl = @"\public\images\products" + fileName + extension;
+                    obj.Product.ImageUrl = @"\public\images\products\" + fileName + extension;
                 }
-                _unitOfWork.Product.Add(obj.Product);
+
+                if (obj.Product.Id == 0)
+                {
+                    //Create
+                    _unitOfWork.Product.Add(obj.Product);
+                }
+                else
+                {
+                    _unitOfWork.Product.Update(obj.Product);
+                }
+
                 _unitOfWork.Save();
                 TempData["success"] = "Successfully created category";
                 return RedirectToAction(nameof(Index));
@@ -136,5 +159,14 @@ namespace FinalBulkyBookWeb.Areas.Admin.Controllers
             }
             return View(obj);
         }
+
+        #region Api for DataTable
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var objProductList = _unitOfWork.Product.GetAll(includeProperties:"Category,CoverType");
+            return Json(new { data = objProductList });
+        } 
+        #endregion
     }
 }

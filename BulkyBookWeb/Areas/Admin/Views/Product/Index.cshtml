@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Product>
+﻿@*@model IEnumerable<Product>*@
 
 @{
     ViewData["Title"] = "Index";
@@ -18,30 +18,23 @@
     </div>
 
 
-    <table class="table table-hover">
+    <table id="tblData" class="table table-hover" style="width:100%">
         <thead>
             <tr class="table-light">
                 <th>Title</th>
-                <th>Description</th>
+                @*<th>Description</th>*@
                 <th>ISBN</th>
-                <th>Author</th>
                 <th>Price</th>
+                <th>Author</th>
+                <th>Category</th>
+                <th>Actions</th>
 
             </tr>
         </thead>
-       @* <tbody>
-            @foreach (var obj in Model)
-            {
-                <tr>
-                    <td>@obj.Name</td>
-                    <td>@obj.DisplayOrder</td>
-                    <td class="flex justify-content-center">
-                        <a asp-route-id="@obj.Id" asp-controller="Category" asp-action="Edit" class="btn btn-primary me-2"><i class="bi bi-pencil-square"></i>&nbsp; Edit</a>
-                        <a asp-route-id="@obj.Id" asp-controller="Category" asp-action="Delete" class="btn btn-danger"><i class="bi bi-pencil-square"></i>&nbsp; Delete</a>
-                    </td>
-                </tr>
-            }
-        </tbody>*@
     </table>
 </div>
+
+@section Scripts {
+    <script src="~/js/product.js"></script>
+}
 
