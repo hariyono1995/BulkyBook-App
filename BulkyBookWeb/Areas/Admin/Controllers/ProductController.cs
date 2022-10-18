@@ -4,6 +4,7 @@ using FinalBulkyBook.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using FinalBulkyBook.Models.ViewModels;
+using Microsoft.Extensions.Hosting.Internal;
 
 namespace FinalBulkyBookWeb.Areas.Admin.Controllers
 {
@@ -132,33 +133,16 @@ namespace FinalBulkyBookWeb.Areas.Admin.Controllers
             return View(obj);
         }
 
-        public IActionResult Delete(int? id)
-        {
-            if (id == null || id == 0) return NotFound();
+        //public IActionResult Delete(int? id)
+        //{
+        //    if (id == null || id == 0) return NotFound();
 
-            var categoryFromDb = _unitOfWork.Category.GetFirstOrDefault(d => d.Id == id);
+        //    var categoryFromDb = _unitOfWork.Category.GetFirstOrDefault(d => d.Id == id);
 
-            if (categoryFromDb == null) return NotFound();
+        //    if (categoryFromDb == null) return NotFound();
 
-            return View(categoryFromDb);
-        }
-
-        //Delete
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeletePost(int? id)
-        {
-            var obj = _unitOfWork.Category.GetFirstOrDefault(d => d.Id == id);
-
-            if (obj != null)
-            {
-                _unitOfWork.Category.Remove(obj);
-                _unitOfWork.Save();
-                TempData["success"] = "Successfully delete category";
-                return RedirectToAction(nameof(Index));
-            }
-            return View(obj);
-        }
+        //    return View(categoryFromDb);
+        //}
 
         #region Api for DataTable
         [HttpGet]
@@ -166,7 +150,30 @@ namespace FinalBulkyBookWeb.Areas.Admin.Controllers
         {
             var objProductList = _unitOfWork.Product.GetAll(includeProperties:"Category,CoverType");
             return Json(new { data = objProductList });
-        } 
+        }
+
+        //Delete
+        //[HttpDelete]
+        [HttpDelete]
+        public IActionResult Delete(int? id)
+        {
+            var obj = _unitOfWork.Product.GetFirstOrDefault(d => d.Id == id);
+
+            if (obj == null)
+            {
+                return Json(new { success = false, message = "Error while deleting" });
+            }
+
+            var oldImagePath = Path.Combine(_hostEnvironment.WebRootPath, obj.ImageUrl.TrimStart('\\'));
+            if(System.IO.File.Exists(oldImagePath))
+            {
+                System.IO.File.Delete(oldImagePath);
+            }
+
+            _unitOfWork.Product.Remove(obj);
+            _unitOfWork.Save();
+            return Json(new {success = true, message = "Deleted successfully."});
+        }
         #endregion
     }
 }
