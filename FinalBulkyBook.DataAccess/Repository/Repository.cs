@@ -1,5 +1,5 @@
 ﻿using FinalBulkyBook.DataAccess.Repository.IRepository;
-using FinalBulkyBook.Data;
+using FinalBulkyBook.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

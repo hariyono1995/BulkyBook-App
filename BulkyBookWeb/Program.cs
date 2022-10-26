@@ -1,7 +1,10 @@
 using FinalBulkyBook.DataAccess.Repository;
 using FinalBulkyBook.DataAccess.Repository.IRepository;
-using FinalBulkyBook.Data;
+using FinalBulkyBook.DataAccess.Data;
+//using FinalBulkyBook.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+
 
 namespace FinalBulkyBookWeb
 {
@@ -16,6 +19,12 @@ namespace FinalBulkyBookWeb
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
             );
+
+            //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            //    .AddEntityFrameworkStores<ApplicationDbContext>();
+            builder.Services.AddDefaultIdentity<IdentityUser>()
+               .AddEntityFrameworkStores<ApplicationDbContext>();
+
             // Replace ApplicationDbContext in CategoryController to use CategoryRepository
             //builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IUnityOfWork, UnityOfWork>();
@@ -34,8 +43,10 @@ namespace FinalBulkyBookWeb
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseAuthentication();
 
             app.UseAuthorization();
+            app.MapRazorPages();
 
             app.MapControllerRoute(
                 name: "default",

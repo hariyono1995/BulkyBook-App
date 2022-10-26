@@ -7,6 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Remove="wwwroot\js\company.js" />
 	  <Content Remove="wwwroot\js\product.js" />
 	</ItemGroup>
 
@@ -15,6 +16,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.10" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.10" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.10" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.10" />
@@ -35,6 +38,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Include="wwwroot\js\company.js" />
 	  <None Include="wwwroot\js\product.js" />
 	</ItemGroup>
 

@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "Company";
+}
+
+<partial name="_Notification" />
+
+
+<div class="container p-3">
+    <div class="row py-4">
+        <div class="col-6">
+            <h2 class="text-primary">Company</h2>
+        </div>
+        <div class="col-6 text-end">
+            <a class="btn btn-primary" asp-controller="Company" asp-action="Upsert"><i class="bi bi-plus-square"></i> &nbsp; Add a new company</a>
+        </div>
+    </div>
+
+
+    <table id="tblData" class="table table-hover" style="width:100%">
+        <thead>
+            <tr class="table-light">
+                <th>Name</th>
+                <th>Street Address</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Postal Code</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="~/js/company.js"></script>
+}
+

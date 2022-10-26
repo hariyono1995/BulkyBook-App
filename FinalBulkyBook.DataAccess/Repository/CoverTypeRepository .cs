@@ -1,6 +1,6 @@
 ﻿using FinalBulkyBook.DataAccess.Repository.IRepository;
 using FinalBulkyBook.Models;
-using FinalBulkyBook.Data;
+using FinalBulkyBook.DataAccess.Data;
 using FinalBulkyBook.Models;
 using System;
 using System.Collections.Generic;
