@@ -4,7 +4,8 @@ using FinalBulkyBook.DataAccess.Data;
 //using FinalBulkyBook.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-
+using FinalBulkyBook.Utility;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace FinalBulkyBookWeb
 {
@@ -22,13 +23,24 @@ namespace FinalBulkyBookWeb
 
             //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
-            builder.Services.AddDefaultIdentity<IdentityUser>()
-               .AddEntityFrameworkStores<ApplicationDbContext>();
+            //builder.Services.AddDefaultIdentity<IdentityUser>()
+            //   .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            // Add role
+            builder.Services.AddIdentity<IdentityUser,IdentityRole>().AddDefaultTokenProviders()
+              .AddEntityFrameworkStores<ApplicationDbContext>();
+            builder.Services.AddSingleton<IEmailSender, EmailSender>();
 
             // Replace ApplicationDbContext in CategoryController to use CategoryRepository
             //builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IUnityOfWork, UnityOfWork>();
             builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = $"/Identity/Account/Login";
+                options.LogoutPath = $"/Identity/Account/Logout";
+                options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+            });
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

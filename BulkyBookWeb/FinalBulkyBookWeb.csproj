@@ -31,6 +31,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\FinalBulkyBook.DataAccess\FinalBulkyBook.DataAccess.csproj" />
+	  <ProjectReference Include="..\FinalBulkyBook.Utility\FinalBulkyBook.Utility.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
