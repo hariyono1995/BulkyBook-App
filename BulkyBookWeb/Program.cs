@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using FinalBulkyBook.Utility;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Stripe;
 
 namespace FinalBulkyBookWeb
 {
@@ -21,13 +22,16 @@ namespace FinalBulkyBookWeb
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
             );
 
+            // Add stripe
+            builder.Services.Configure<StripeSetting>(builder.Configuration.GetSection("Stripe"));
+
             //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
             //builder.Services.AddDefaultIdentity<IdentityUser>()
             //   .AddEntityFrameworkStores<ApplicationDbContext>();
 
             // Add role
-            builder.Services.AddIdentity<IdentityUser,IdentityRole>().AddDefaultTokenProviders()
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddDefaultTokenProviders()
               .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddSingleton<IEmailSender, EmailSender>();
 
@@ -55,6 +59,9 @@ namespace FinalBulkyBookWeb
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            // Add publish stripe
+            StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
             app.UseAuthentication();
 
             app.UseAuthorization();

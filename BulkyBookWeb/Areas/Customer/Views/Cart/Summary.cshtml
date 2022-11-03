@@ -1,4 +1,9 @@
-﻿
+﻿@model FinalBulkyBook.Models.ViewModels.ShoppingCartVM
+
+@*Inject stripe*@
+@using Microsoft.Extensions.Options
+@inject IOptions<FinalBulkyBook.Utility.StripeSetting> Stripe
+
 <form method="post">
 	<br />
 	<div class="container">
@@ -83,30 +88,25 @@
 								<span class="text-info">Order Summary:</span>
 							</h4>
 							<ul class="list-group mb-3">
-								@*@foreach (var details in Model.ListCart)*@
-								@*{*@
+								@foreach (var details in Model.ListCarts)
+								{
 									<li class="list-group-item d-flex justify-content-between">
 										<div>
 											<h6 class="my-0">
-												@*@details.Product.Title*@
-											Jagoan neo	
+												@details.Product.Title
 											</h6>
-											<small class="text-muted">Quantity: 
-												@*@details.Count*@
-											20	
+											<small class="text-muted">Quantity: @details.Count
 											</small>
 										</div>
 										<span class="text-muted">
-											@*@((details.Price * details.Count).ToString("c")) *@
-										$???	
+											@((details.Price * details.Count).ToString("c")) 
 										</span>
 									</li>
-								@*}*@
+								}
 								<li class="list-group-item d-flex justify-content-between bg-light">
 									<small class="text-info">Total (USD)</small>
 									<strong class="text-info">
-										@*@Model.OrderHeader.OrderTotal.ToString("c")*@
-										$???
+										@Model.OrderHeader.OrderTotal.ToString("c")
 										</strong>
 								</li>
 							</ul>
@@ -119,7 +119,7 @@
 					<div class="col-12 col-md-8 pt-2">
 						<p style="color:maroon; font-size:14px;">
 							Estimate Arrival Date:
-							@*@DateTime.Now.AddDays(7).ToShortDateString() - @DateTime.Now.AddDays(14).ToShortDateString()*@
+							@DateTime.Now.AddDays(7).ToShortDateString() - @DateTime.Now.AddDays(14).ToShortDateString()
 						</p>
 					</div>
 					<div class="col-12 col-md-4">

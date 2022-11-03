@@ -15,7 +15,7 @@ namespace FinalBulkyBook.DataAccess.Repository.IRepository
         IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? includeProperties = null);
         void Add(T entity);
         void Remove(T entity);
-        void RemoveRange(T entities);
+        void RemoveRange(IEnumerable<T> entities);
         void AddRange(IEnumerable<T> entities);
     }
 }
