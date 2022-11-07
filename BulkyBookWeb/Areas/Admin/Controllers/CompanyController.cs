@@ -5,10 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using FinalBulkyBook.Models.ViewModels;
 using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.AspNetCore.Authorization;
+using FinalBulkyBook.Utility;
 
 namespace FinalBulkyBookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = SD.Role_Admin)]
     public class CompanyController : Controller
     {
         private readonly IUnityOfWork _unitOfWork;

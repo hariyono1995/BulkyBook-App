@@ -2,10 +2,13 @@
 using FinalBulkyBook.Data;
 using FinalBulkyBook.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using FinalBulkyBook.Utility;
 
 namespace FinalBulkyBookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = SD.Role_Admin)]
     public class CategoryController : Controller
     {
         private readonly IUnityOfWork _unitOfWork;

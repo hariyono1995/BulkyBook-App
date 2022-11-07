@@ -1,5 +1,6 @@
 ﻿using FinalBulkyBook.DataAccess.Repository.IRepository;
 using FinalBulkyBook.Models;
+using FinalBulkyBook.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -51,13 +52,15 @@ namespace FinalBulkyBookWeb.Areas.Customer.Controllers
             if(cartFromDb == null)
             {
                 _unityOfWork.ShoppingCart.Add(shoppingCart);
+                _unityOfWork.Save();
+                HttpContext.Session.SetInt32(SD.SessionCart, _unityOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == claim.Value).ToList().Count);
             }
             else
             {
                 _unityOfWork.ShoppingCart.IncrementCount(cartFromDb, shoppingCart.Count);
+                _unityOfWork.Save();
             }
 
-            _unityOfWork.Save();
 
             return RedirectToAction(nameof(Index));
         }

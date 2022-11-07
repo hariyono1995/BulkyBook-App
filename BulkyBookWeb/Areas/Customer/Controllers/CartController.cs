@@ -86,8 +86,6 @@ namespace FinalBulkyBookWeb.Areas.Customer.Controllers
 
             ShoppingCartVM.ListCarts = _unityOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == claim.Value, includeProperties: "Product");
 
-            ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
-            ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
             ShoppingCartVM.OrderHeader.OrderDate = DateTime.Now;
             ShoppingCartVM.OrderHeader.ApplicationUserId = claim.Value;
 
@@ -95,6 +93,19 @@ namespace FinalBulkyBookWeb.Areas.Customer.Controllers
             {
                 cart.Price = GetPriceOnBasedQuantity(cart.Count, cart.Product.Price, cart.Product.Price50, cart.Product.Price100);
                 ShoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
+            }
+
+            ApplicationUser applicationUser = _unityOfWork.ApplicationUser.GetFirstOrDefault(u => u.Id == claim.Value);
+
+            if(applicationUser.CompanyId.GetValueOrDefault() == 0)
+            {
+                ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
+                ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+            }
+            else
+            {
+                ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment;
+                ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
             }
 
             _unityOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
@@ -113,48 +124,54 @@ namespace FinalBulkyBookWeb.Areas.Customer.Controllers
                 _unityOfWork.Save();
             }
 
-            // Stripe settings
-            var domain = "https://localhost:7188/";
-            var options = new SessionCreateOptions
+            if (applicationUser.CompanyId.GetValueOrDefault() == 0)
             {
-                PaymentMethodTypes = new List<string>
+                // Stripe settings
+                var domain = "https://localhost:7188/";
+                var options = new SessionCreateOptions
                 {
-                  "card",
-                },
-                LineItems = new List<SessionLineItemOptions>(),
-                Mode = "payment",
-                SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={ShoppingCartVM.OrderHeader.Id}",
-                CancelUrl = domain + $"customer/cart/index",
-            };
-
-            foreach (var item in ShoppingCartVM.ListCarts)
-            {
-
-                var sessionLineItem = new SessionLineItemOptions
-                {
-                    PriceData = new SessionLineItemPriceDataOptions
+                    PaymentMethodTypes = new List<string>
                     {
-                        UnitAmount = (long)(item.Price * 100),//20.00 -> 2000
-                        Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = item.Product.Title
-                        },
-
+                      "card",
                     },
-                    Quantity = item.Count,
+                    LineItems = new List<SessionLineItemOptions>(),
+                    Mode = "payment",
+                    SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={ShoppingCartVM.OrderHeader.Id}",
+                    CancelUrl = domain + $"customer/cart/index",
                 };
-                options.LineItems.Add(sessionLineItem);
 
+                foreach (var item in ShoppingCartVM.ListCarts)
+                {
+
+                    var sessionLineItem = new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            UnitAmount = (long)(item.Price * 100),//20.00 -> 2000
+                            Currency = "usd",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = item.Product.Title
+                            },
+
+                        },
+                        Quantity = item.Count,
+                    };
+                    options.LineItems.Add(sessionLineItem);
+
+                }
+
+                var service = new SessionService();
+                Session session = service.Create(options);
+                _unityOfWork.OrderHeader.UpdateStripePaymentID(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+                _unityOfWork.Save();
+                Response.Headers.Add("Location", session.Url);
+                return new StatusCodeResult(303);
             }
-
-            var service = new SessionService();
-            Session session = service.Create(options);
-            _unityOfWork.OrderHeader.UpdateStripePaymentID(ShoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
-            _unityOfWork.Save();
-            Response.Headers.Add("Location", session.Url);
-            return new StatusCodeResult(303);
-
+            else
+            {
+                return RedirectToAction(nameof(OrderConfirmation), "Cart", new { id = ShoppingCartVM.OrderHeader.Id });
+            }
 
             //_unityOfWork.ShoppingCart.RemoveRange(ShoppingCartVM.ListCarts);
             //_unityOfWork.Save();
@@ -166,18 +183,23 @@ namespace FinalBulkyBookWeb.Areas.Customer.Controllers
         {
             OrderHeader orderHeader = _unityOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id);
 
-            var service = new SessionService();
-            Session session = service.Get(orderHeader.SessionId);
-            
-            // Check the stripe status
-            if (session.PaymentStatus.ToLower() == "paid")
+            if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
             {
-                _unityOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
-                _unityOfWork.Save();
+                var service = new SessionService();
+                Session session = service.Get(orderHeader.SessionId);
+
+                // Check the stripe status
+                if (session.PaymentStatus.ToLower() == "paid")
+                {
+                    _unityOfWork.OrderHeader.UpdateStripePaymentID(id, orderHeader.SessionId, session.PaymentIntentId);
+
+                    _unityOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
+                    _unityOfWork.Save();
+                }
             }
 
             List<ShoopingCart> shoppingCarts = _unityOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
-
+            HttpContext.Session.Clear();
             _unityOfWork.ShoppingCart.RemoveRange(shoppingCarts);
             _unityOfWork.Save();
 
@@ -199,6 +221,8 @@ namespace FinalBulkyBookWeb.Areas.Customer.Controllers
             if(cartItem.Count <= 1)
             {
                 _unityOfWork.ShoppingCart.Remove(cartItem);
+                var count = _unityOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == cartItem.ApplicationUserId).ToList().Count - 1;
+                HttpContext.Session.SetInt32(SD.SessionCart, count);
             }
             else
             {
@@ -217,6 +241,8 @@ namespace FinalBulkyBookWeb.Areas.Customer.Controllers
                 _unityOfWork.ShoppingCart.Remove(cartItem);
             }
             _unityOfWork.Save();
+            var count = _unityOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == cartItem.ApplicationUserId).ToList().Count;
+            HttpContext.Session.SetInt32(SD.SessionCart, count);
             return RedirectToAction(nameof(Index));
         }
 

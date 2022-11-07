@@ -3,10 +3,13 @@ using FinalBulkyBook.Models;
 using FinalBulkyBook.Data;
 using FinalBulkyBook.Models;
 using Microsoft.AspNetCore.Mvc;
+using FinalBulkyBook.Utility;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FinalBulkyBookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = SD.Role_Admin)]
     public class CoverTypeController : Controller
     {
         private readonly IUnityOfWork _unitOfWork;
